@@ -59,6 +59,11 @@ const store = async (req, res) => {
 
 const getPresentByOffset = async (req, res) => {
     try {
+        const presentationsCount = await Presentation.count({
+            where: {
+                    user_id: 1
+                },
+        });
         var presentations = await Presentation
             .findAll({
                 where: {
@@ -77,7 +82,7 @@ const getPresentByOffset = async (req, res) => {
                 ],
             });
 
-        return output(res,  presentations , false, 'Success', 200);
+        return output(res,  { presentationsCount:presentationsCount, presentations:presentations } , false, 'Success', 200);
 
     }catch(error){
 

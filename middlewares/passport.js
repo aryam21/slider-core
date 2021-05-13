@@ -13,25 +13,24 @@ passport.use(new GoogleStrategy({
     passReqToCallback: true,
 },
     function(request, accessToken, refreshToken, profile, done) {
-        console.log(profile);
         // let user_email = profile.emails && profile.emails[0].value;
             var googleId = profile.id;
             var email = profile.emails[0].value;
             var firstName = profile.given_name;
             var lastName = profile.family_name;
             var picture = profile.picture;
-            var userFound = User.findByPk({
-                where: {
-                    email:email
-                }
-            });
-            if (userFound){
-                User.update({ google_id:googleId, first_name: firstName, last_name:lastName, email:email, picture: picture }, {
-                    where: {email:email}
-                });
-            }else{
+            // var userFound = User.findByPk({
+            //     where: {
+            //         email:email
+            //     }
+            // });
+            // if (userFound){
+            //     User.update({ google_id:googleId, first_name: firstName, last_name:lastName, email:email, picture: picture }, {
+            //         where: {email:email}
+            //     });
+            // }else{
                 User.create({ google_id:googleId, first_name: firstName, last_name:lastName, email:email, picture: picture });
-            }
+            // }
 //             // // let [user] = await db('users').select(['id', 'name', 'email']).where('email', user_email);
 //             // let redirect_url = "";
 //             // if (user_email) {
