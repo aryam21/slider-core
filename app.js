@@ -19,6 +19,8 @@ const output = require('./helpers/generateOutput');
 
 global.__basedir = __dirname;
 
+// app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(bodyParser.json());
 app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
