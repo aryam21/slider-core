@@ -29,49 +29,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// app.use(expressSession({
-//   secret: 'keyboard cat',
-//   resave: false,
-//   saveUninitialized: true,
-//   cookie: { secure: true }
-// }));
-
-// function isLoggedIn(req, res, next) {
-//   req.user ? next() : res.sendStatus(401);
-// }
-//
-// app.use(expressSession({ secret: 'cats', resave: false, saveUninitialized: true }));
-// app.use(passport.initialize());
-// app.use(passport.session());
-//
-// app.get('/', (req, res) => {
-//   res.send('<a href="/auth/google">Authenticate with Google</a>');
-// });
-//
-// app.get('/auth/google',
-//   passport.authenticate('google', { scope: [ 'email', 'profile' ] }
-// ));
-//
-// app.get('/auth/google/redirect',
-//     passport.authenticate( 'google', { successRedirect: '/protected', failureRedirect: '/auth/google/failure' })
-// );
-//
-// app.get('/protected', isLoggedIn, (req, res) => {
-//   res.send(`Hello ${req.user.displayName}`);
-// });
-//
-// app.get('/logout', (req, res) => {
-//   req.logout();
-//   req.session.destroy();
-//   res.send('Goodbye!');
-// });
-//
-// app.get('/auth/google/failure', (req, res) => {
-//   res.send('Failed to authenticate..');
-// });
-
-
-
 app.use('/api', indexRouter);
 
 app.use(function(err, req, res, next) {
