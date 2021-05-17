@@ -33,9 +33,11 @@ const store = async (req, res) => {
         //     fs.createReadStream(req.files[0].path)
         //         .pipe(unzipper.Parse())
         //         .on('entry', function (entry) {
-        //             const fileName = entry.path;
-        //             const type = entry.type; // 'Directory' or 'File'
-        //             const size = entry.vars.uncompressedSize; // There is also compressedSize;
+        //             req.files[0].path = entry.path;
+        //             req.files[0].mimetype = entry.type; // 'Directory' or 'File'
+        //             console.log(entry.vars.uncompressedSize);
+        //             req.files[0].size = entry.vars.uncompressedSize; // There is also compressedSize;
+        //             req.files[0].fileName = 'aa'; // There is also compressedSize;
         //             entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${new Date().getTime()}.png`));
         //         });
         // }

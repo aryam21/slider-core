@@ -38,11 +38,9 @@ exports.signToken = (req, res) => {
     jwt.sign({ email: req.user.email, googleId:req.user.id}, 'secretkey', {expiresIn:'1d'}, (err, token) => {
         if(err){
             return output(res, [], true, err, 500);
-            // res.sendStatus(500);
         } else {
-            res.header('Access-Control-Expose-Headers', token)
-            return output(res, {'token': token}, false, 'success', 200);
-            // res.json({token});
+            res.header('Access-Control-Expose-Headers', token);
+            return output(res, {'name': req.user.given_name, 'image':req.user.picture}, false, 'success', 200);
         }
     });
 }
