@@ -4,10 +4,13 @@ const express = require('express');
 const expressSession = require('express-session');
 const passport = require('passport');
 const router = express.Router();
+const authService = require('../../services/AuthService');
 
-function isLoggedIn(req, res, next) {
-    req.user ? next() : res.sendStatus(401);
-}
+const output = require('../../helpers/generateOutput');
+
+// function isLoggedIn(req, res, next) {
+//     req.user ? next() : res.sendStatus(401);
+// }
 
 router.use(expressSession({ secret: 'cats', resave: false, saveUninitialized: true }));
 router.use(passport.initialize());
@@ -18,21 +21,28 @@ router.get('/', (req, res) => {
 });
 
 router.get('/google',
-    passport.authenticate('google', { scope: [ 'email', 'profile' ] }
+    passport.authenticate('google', {
+        session: false,
+        scope: ["profile", "email"],
+        accessType: "offline",
+        approvalPrompt: "force"
+    }
     ));
 
 router.get('/google/redirect',
-    passport.authenticate( 'google', { successRedirect: '/api/auth/protected', failureRedirect: '/google/failure' })
+    passport.authenticate( 'google',  { successRedirect: '/api/auth/protected', failureRedirect: '/api/auth/google/failure' })
 );
 
-router.get('/protected', isLoggedIn, (req, res) => {
-    res.send(`Hello ${req.user.displayName}`);
+// router.get('/protected', isLoggedIn, (req, res) => {
+router.get('/protected', (req, res) => {
+    authService.signToken(req, res);
+    // return output(res, token, false, '', 200);
 });
 
 router.get('/logout', (req, res) => {
     req.logout();
     req.session.destroy();
-    res.send('Goodbye!');
+    // res.send('Goodbye!');
 });
 
 router.get('/google/failure', (req, res) => {
@@ -42,3 +52,25 @@ router.get('/google/failure', (req, res) => {
 
 
 module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+
+// // route to check token with postman.
+// // using middleware to check for authorization header
+// app.get('/verify', authService.checkTokenMW, (req, res) => {
+//   authService.verifyToken(req, res);
+//   if (null === req.authData) {
+//     res.sendStatus(403);
+//   } else {
+//     res.json(req.authData);
+//   }
+// });

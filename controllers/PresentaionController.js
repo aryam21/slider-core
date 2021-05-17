@@ -4,6 +4,8 @@ const db = require("../models");
 const Presentation = db.Presentation;
 const User = db.User;
 const File = db.File;
+const unzipper = require('unzipper');
+const fs = require('fs');
 
 const output = require('../helpers/generateOutput');
 const moveFile = require('../helpers/moveFile');
@@ -21,11 +23,22 @@ const store = async (req, res) => {
             user_id: '1',
             title: req.body.title,
             is_private: req.body.is_private,
-            // secret_key: req.body.is_private ? Math.floor(100000 + Math.random() * 900000) : null,
             secret_key: req.body.is_private ? Math.random().toString().substring(2, 8) : null,
         },{
             transaction: t
         });
+
+
+        // if (req.files[0].mimetype == 'application/zip') {
+        //     fs.createReadStream(req.files[0].path)
+        //         .pipe(unzipper.Parse())
+        //         .on('entry', function (entry) {
+        //             const fileName = entry.path;
+        //             const type = entry.type; // 'Directory' or 'File'
+        //             const size = entry.vars.uncompressedSize; // There is also compressedSize;
+        //             entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${new Date().getTime()}.png`));
+        //         });
+        // }
 
         const userId = 1;
         const presentationId = presentation.dataValues.id;
@@ -61,8 +74,8 @@ const getPresentByOffset = async (req, res) => {
     try {
         const presentationsCount = await Presentation.count({
             where: {
-                    user_id: 1
-                },
+                user_id: 1
+            },
         });
         var presentations = await Presentation
             .findAll({
@@ -75,7 +88,7 @@ const getPresentByOffset = async (req, res) => {
                     as: 'presentation_file',
                     attributes: ['id', 'path', 'size', 'mime' ],
                 }],
-                offset: req.params.offset,
+                offset: (req.params.offset-1)*10,
                 limit: 10,
                 order: [
                     ['createdAt', 'ASC'],
