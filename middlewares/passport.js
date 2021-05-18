@@ -11,6 +11,7 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: process.env.CALLBACKURL,
     passReqToCallback: true,
+    proxy:true
 },
     function(request, accessToken, refreshToken, profile, done) {
         // let user_email = profile.emails && profile.emails[0].value;

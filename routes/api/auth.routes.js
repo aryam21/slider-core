@@ -5,8 +5,10 @@ const expressSession = require('express-session');
 const passport = require('passport');
 const router = express.Router();
 const authService = require('../../services/AuthService');
-
 const output = require('../../helpers/generateOutput');
+const uploadFile = require('../../middlewares/upload');
+
+var UserController = require('../../controllers/index').user;
 
 // function isLoggedIn(req, res, next) {
 //     req.user ? next() : res.sendStatus(401);
@@ -15,6 +17,12 @@ const output = require('../../helpers/generateOutput');
 router.use(expressSession({ secret: 'cats', resave: false, saveUninitialized: true }));
 router.use(passport.initialize());
 router.use(passport.session());
+
+
+
+router.post('/user', uploadFile.none(), UserController.login);
+
+
 
 router.get('/', (req, res) => {
     res.send('<a href="/google">Authenticate with Google</a>');
@@ -31,6 +39,7 @@ router.get('/google',
 
 router.get('/google/redirect',
     passport.authenticate( 'google',  { successRedirect: '/api/auth/protected', failureRedirect: '/api/auth/google/failure' })
+    // passport.authenticate( 'google',  { successRedirect: '/api/auth/protected', failureRedirect: '/api/auth/google/failure' })
 );
 
 // router.get('/protected', isLoggedIn, (req, res) => {

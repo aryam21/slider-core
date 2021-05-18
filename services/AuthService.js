@@ -35,12 +35,13 @@ exports.checkTokenMW = (req, res, next) => {
 
 // Issue Token
 exports.signToken = (req, res) => {
-    jwt.sign({ email: req.user.email, googleId:req.user.id}, 'secretkey', {expiresIn:'1d'}, (err, token) => {
+    jwt.sign({ email: req.body.email || 'some' , googleId:req.body.id || 'some'}, 'secretkey', {expiresIn:'1d'}, (err, token) => {
         if(err){
             return output(res, [], true, err, 500);
         } else {
-            res.header('Access-Control-Expose-Headers', token);
-            return output(res, {'name': req.user.given_name, 'image':req.user.picture}, false, 'success', 200);
+            // res.header('Access-Control-Expose-Headers', token);
+            res.cookie( 'token', token);
+            return output(res, [], false, 'success', 200);
         }
     });
 }
