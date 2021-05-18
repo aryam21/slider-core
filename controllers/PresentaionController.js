@@ -31,31 +31,32 @@ const store = async (req, res) => {
         const userId = 1;
         const presentationId = presentation.dataValues.id;
 
-        if (req.files[0].mimetype == 'application/zip') {
-            fs.createReadStream(req.files[0].path)
-                .pipe(unzipper.Parse())
-                .on('entry', function (entry) {
-                    let fileName = new Date().getTime();
-                    entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
-                    let mimeType = entry.path.split('.').pop();
-                    let size = entry.vars.uncompressedSize;
-                    let oldPath = `public/uploads/tmp/${fileName}`;
-                    let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
-                    moveFile(oldPath, newPath);
-                    let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
-                    File.create({
-                        presentation_id: presentationId,
-                        path: newPathDb,
-                        name:`${fileName }.${mimeType}`,
-                        size: size ,
-                        mime: mimeType,
-                    },{
-                        // transaction: t
-                    })
-                });
+        // console.log(req.files[0].destination);
+        // if (req.files[0].mimetype == 'application/zip') {
+        //     fs.createReadStream(req.files[0].path)
+        //         .pipe(unzipper.Parse())
+        //         .on('entry', async function (entry) {
+        //             let fileName = new Date().getTime();
+        //             await entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
+        //             let mimeType = entry.path.split('.').pop();
+        //             let size = entry.vars.uncompressedSize;
+        //             let oldPath = `public/uploads/tmp/${fileName}.${mimeType}`;
+        //             let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
+        //             moveFile(oldPath, newPath);
+                    // let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
+                    // await File.create({
+                    //     presentation_id: presentationId,
+                    //     path: newPathDb,
+                    //     name:`${fileName }.${mimeType}`,
+                    //     size: size ,
+                    //     mime: mimeType,
+                    // },{
+                    //     transaction: t
+                    // })
+                // });
             // await t.commit();
-            return output(res, [], false, 'File has been uploaded.', 200);
-        }
+            // return output(res, [], false, 'File has been uploaded.', 200);
+        // }
 
 
         for (const file of req.files) {

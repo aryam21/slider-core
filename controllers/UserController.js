@@ -1,14 +1,12 @@
 const User = require('../models').User;
 const authService = require('../services/AuthService');
 const output = require('../helpers/generateOutput');
-
-
 const login = async (req, res) => {
-    var googleId = req.body.id || 'some';
-    var email = req.body.email || 'some';
-    var firstName = req.body.firstName || 'some';
-    var lastName = req.body.lastName || 'some';
-    var picture = req.body.picture || 'some';
+    var googleId = req.body.googleId;
+    var email = req.body.email;
+    var firstName = req.body.familyName;
+    var lastName = req.body.givenName;
+    var picture = req.body.imageUrl;
     try {
         await User.create({ google_id:googleId, first_name: firstName, last_name:lastName, email:email, picture: picture });
     } catch (e) {
@@ -16,8 +14,6 @@ const login = async (req, res) => {
     }
     authService.signToken(req, res);
 }
-
-
 module.exports = {
     login,
 };
