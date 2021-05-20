@@ -30,7 +30,7 @@ const store = async (req, res) => {
             transaction: t
         });
 
-        const userId = req.data.userId;
+        var userId = req.data.userId;
         const presentationId = presentation.dataValues.id;
 
 
@@ -79,9 +79,9 @@ const store = async (req, res) => {
             let mimeType = file.originalname.split('.').pop();
             let fileName = new Date().getTime();
             let oldPath = `public/uploads/tmp/${file.filename}`;
-            let newPath = `public/uploads/${req.data.userId}/${presentationId}/${fileName}.${mimeType}`;
+            let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
             moveFile(oldPath, newPath);
-            let newPathDb = `uploads/${req.data.userId}/${presentationId}/${fileName}.${mimeType}`;
+            let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
 
             await File.create({
                 presentation_id: presentationId,

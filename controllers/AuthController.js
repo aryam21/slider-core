@@ -11,7 +11,7 @@ const login = async (req, res) => {
         var presentations = await Presentation
             .findAll({
                 where: {
-                    user_id: 1
+                    user_id: req.data.userId
                 },
                 attributes: ['id', 'title', 'is_private', 'secret_key', 'createdAt' ],
                 include: [{
