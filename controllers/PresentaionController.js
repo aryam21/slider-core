@@ -30,7 +30,7 @@ const store = async (req, res) => {
             transaction: t
         });
 
-        const userId = 1;
+        const userId = req.data.userId;
         const presentationId = presentation.dataValues.id;
 
 
