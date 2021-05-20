@@ -9,14 +9,14 @@ exports.checkTokenMW = (req, res, next) => {
         if (!token) {
             return output(res, {message: 'Not Authorized'}, true, err, 401);
         }
-        jwt.verify(token, 'secretkey', (err, authData) => {
+        jwt.verify(token, 'secretkey', (err, data) => {
             if (err && err.name == 'Timeout') {
                 return output(res, {message: 'Token timeout'}, true, err, 401);
             }
             if(err) {
                 return output(res, {message: 'Not Authorized'}, true, err, 401);
             } else {
-                return req.authData = authData;
+                return req.data = data;
             }
         })
         next();
@@ -26,17 +26,17 @@ exports.checkTokenMW = (req, res, next) => {
 };
 // Verify Token validity and attach token data as request attribute
 // exports.verifyToken = (req, res) => {
-//     jwt.verify(req.token, 'secretkey', (err, authData) => {
+//     jwt.verify(req.token, 'secretkey', (err, data) => {
 //         if(err) {
 //             res.sendStatus(403);
 //         } else {
-//             return req.authData = authData;
+//             return req.data = data;
 //         }
 //     })
 // };
 // Issue Token
-exports.signToken = (req, res) => {
-    jwt.sign({ email: req.body.email , googleId:req.body.googleId}, 'secretkey', {expiresIn:'1d'}, (err, token) => {
+exports.signToken = (req, res, userId) => {
+    jwt.sign({ userId: userId, email: req.body.email , googleId:req.body.googleId}, 'secretkey', {expiresIn:'1d'}, (err, token) => {
         if(err){
             return output(res, [], true, err, 500);
         } else {

@@ -6,9 +6,11 @@ const User = db.User;
 const File = db.File;
 const unzipper = require('unzipper');
 const fs = require('fs');
-
+const decompress = require("decompress");
+const path = require("path");
 const output = require('../helpers/generateOutput');
 const moveFile = require('../helpers/moveFile');
+const removeFile = require('../helpers/removeFile');
 
 const store = async (req, res) => {
 
@@ -20,7 +22,7 @@ const store = async (req, res) => {
         }
 
         var presentation = await Presentation.create({
-            user_id: '1',
+            user_id: req.data.userId,
             title: req.body.title,
             is_private: req.body.is_private,
             secret_key: req.body.is_private ? Math.random().toString().substring(2, 8) : null,
@@ -31,31 +33,45 @@ const store = async (req, res) => {
         const userId = 1;
         const presentationId = presentation.dataValues.id;
 
-        // console.log(req.files[0].destination);
+
         // if (req.files[0].mimetype == 'application/zip') {
-        //     fs.createReadStream(req.files[0].path)
-        //         .pipe(unzipper.Parse())
-        //         .on('entry', async function (entry) {
-        //             let fileName = new Date().getTime();
-        //             await entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
-        //             let mimeType = entry.path.split('.').pop();
-        //             let size = entry.vars.uncompressedSize;
-        //             let oldPath = `public/uploads/tmp/${fileName}.${mimeType}`;
-        //             let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
-        //             moveFile(oldPath, newPath);
-                    // let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
-                    // await File.create({
-                    //     presentation_id: presentationId,
-                    //     path: newPathDb,
-                    //     name:`${fileName }.${mimeType}`,
-                    //     size: size ,
-                    //     mime: mimeType,
-                    // },{
-                    //     transaction: t
-                    // })
-                // });
-            // await t.commit();
-            // return output(res, [], false, 'File has been uploaded.', 200);
+            // const t2 = await db.sequelize.transaction();
+            // try {
+            //     fs.createReadStream(req.files[0].path)
+            //         .pipe(unzipper.Parse())
+            //         .on('entry', async function (entry) {
+            //             let fileName = new Date().getTime();
+            //                 var unzippedFiles = [];
+            //             if (entry.type == 'File') {
+            //                 await entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
+            //                 let mimeType = entry.path.split('.').pop();
+            //                 let size = entry.vars.uncompressedSize;
+            //                 let oldPath = `public/uploads/tmp/${fileName}.${mimeType}`;
+            //                 let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
+            //                 moveFile(oldPath, newPath);
+            //                 let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
+            //                 let unzipFile = { 'path': newPathDb, 'name':`${fileName }.${mimeType}`, 'size': size , 'mime': mimeType, };
+            //                 unzippedFiles.push("aaa");
+                            // await File.create({
+                            //     presentation_id: presentationId,
+                            //     path: newPathDb,
+                            //     name:`${fileName }.${mimeType}`,
+                            //     size: size ,
+                            //     mime: mimeType,
+                            // },{
+                            //     // transaction: t2
+                            // })
+                        // }
+                    // });
+                // removeFile(req.files[0].path);
+                // await t2.commit();
+                // console.log(unzippedFiles);
+                // return output(res, [], false, 'File has been uploaded.', 200);
+            // } catch (e) {
+                // await t2.rollback();
+                // console.log(e);
+                // return output(res, [], true, `Error when trying upload files: ${error}`, 500);
+            // }
         // }
 
 
@@ -87,16 +103,25 @@ const store = async (req, res) => {
 };
 
 const getPresentByOffset = async (req, res) => {
+    // console.log(req.data);
     try {
+        // const user = await User.findByPk({
+        //     where: {
+        //         google_id: '118342323602051883213'
+        //     },
+        //     attributes: ['id'],
+        // })
+        // console.log(user);
         const presentationsCount = await Presentation.count({
             where: {
-                user_id: 1
+                // user_id: 1  
+                user_id: req.data.userId
             },
         });
         var presentations = await Presentation
             .findAll({
                 where: {
-                    user_id: 1
+                    user_id: req.data.userId
                 },
                 attributes: ['id', 'title', 'is_private', 'secret_key', 'createdAt' ],
                 include: [{
@@ -125,7 +150,7 @@ const getPresentsByUser = async (req, res) => {
         var presentations = await Presentation
             .findAll({
                 where: {
-                    user_id: 1
+                    user_id: req.data.userId
                 },
                 attributes: ['id', 'title', 'is_private', 'secret_key', 'createdAt' ],
                 include: [{
@@ -176,7 +201,7 @@ const getPresentBySlug = async (req, res) => {
         var presentation = await Presentation.findOne({
             where: {
                 secret_key: req.params.slug,
-                user_id: 1
+                user_id: req.data.userId
             },
             attributes: ['id', 'title', 'is_private', 'secret_key' ],
             include: [{
