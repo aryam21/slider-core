@@ -35,6 +35,10 @@ const store = async (req, res) => {
 
         var presentationId = presentation.dataValues.id;
 
+        if  (req.files[0].mimetype === 'application/x-zip-compressed') {
+            return output(res, [], false, 'Unhandled zip format.', 400);
+        }
+
         if (req.files[0].mimetype == 'application/zip') {
                 fs.createReadStream(req.files[0].path)
                     .pipe(unzipper.Parse())
