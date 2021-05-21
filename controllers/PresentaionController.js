@@ -17,12 +17,15 @@ const store = async (req, res) => {
     const t = await db.sequelize.transaction();
 
     try {
+
         if (req.files.length <= 0) {
             return output(res, [], true, 'You must select at least 1 file.', 400);
         }
 
+        var userId = req.data.userId;
+
         var presentation = await Presentation.create({
-            user_id: req.data.userId,
+            user_id: userId,
             title: req.body.title,
             is_private: req.body.is_private,
             secret_key: req.body.is_private ? Math.random().toString().substring(2, 8) : null,
@@ -30,68 +33,52 @@ const store = async (req, res) => {
             transaction: t
         });
 
-        var userId = req.data.userId;
-        const presentationId = presentation.dataValues.id;
+        var presentationId = presentation.dataValues.id;
 
-
-        // if (req.files[0].mimetype == 'application/zip') {
-            // const t2 = await db.sequelize.transaction();
-            // try {
-            //     fs.createReadStream(req.files[0].path)
-            //         .pipe(unzipper.Parse())
-            //         .on('entry', async function (entry) {
-            //             let fileName = new Date().getTime();
-            //                 var unzippedFiles = [];
-            //             if (entry.type == 'File') {
-            //                 await entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
-            //                 let mimeType = entry.path.split('.').pop();
-            //                 let size = entry.vars.uncompressedSize;
-            //                 let oldPath = `public/uploads/tmp/${fileName}.${mimeType}`;
-            //                 let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
-            //                 moveFile(oldPath, newPath);
-            //                 let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
-            //                 let unzipFile = { 'path': newPathDb, 'name':`${fileName }.${mimeType}`, 'size': size , 'mime': mimeType, };
-            //                 unzippedFiles.push("aaa");
-                            // await File.create({
-                            //     presentation_id: presentationId,
-                            //     path: newPathDb,
-                            //     name:`${fileName }.${mimeType}`,
-                            //     size: size ,
-                            //     mime: mimeType,
-                            // },{
-                            //     // transaction: t2
-                            // })
-                        // }
-                    // });
-                // removeFile(req.files[0].path);
-                // await t2.commit();
-                // console.log(unzippedFiles);
-                // return output(res, [], false, 'File has been uploaded.', 200);
-            // } catch (e) {
-                // await t2.rollback();
-                // console.log(e);
-                // return output(res, [], true, `Error when trying upload files: ${error}`, 500);
-            // }
-        // }
+        if (req.files[0].mimetype == 'application/zip') {
+                fs.createReadStream(req.files[0].path)
+                    .pipe(unzipper.Parse())
+                    .on('entry', async function (entry) {
+                        let fileName = new Date().getTime();
+                        if (entry.type == 'File') {
+                            await entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
+                            let mimeType = entry.path.split('.').pop();
+                            let size = entry.vars.uncompressedSize;
+                            let oldPath = `public/uploads/tmp/${fileName}.${mimeType}`;
+                            let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
+                            await moveFile(oldPath, newPath);
+                            let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
+                            await File.create({
+                                presentation_id: presentationId,
+                                path: newPathDb,
+                                name:`${fileName }.${mimeType}`,
+                                size: size ,
+                                mime: mimeType,
+                            })
+                        }
+                    });
+                removeFile(req.files[0].path);
+                await t.commit();
+                return output(res, [], false, 'File has been uploaded from.', 200);
+        }
 
 
         for (const file of req.files) {
-            let mimeType = file.originalname.split('.').pop();
+            let mimeType = file.mimetype.split('/').pop();
             let fileName = new Date().getTime();
             let oldPath = `public/uploads/tmp/${file.filename}`;
             let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
             moveFile(oldPath, newPath);
             let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
-
             await File.create({
                 presentation_id: presentationId,
                 path: newPathDb,
-                name:`${fileName }.${mimeType}`,
-                size: file.size ,
-                mime: file.mimetype,
+                name: `${fileName}.${mimeType}`,
+                size: file.size,
+                mime: mimeType,
             },{
                 transaction: t
-            })
+            });
         }
         await t.commit();
         return output(res, [], false, 'File has been uploaded.', 200);
@@ -114,7 +101,7 @@ const getPresentByOffset = async (req, res) => {
         // console.log(user);
         const presentationsCount = await Presentation.count({
             where: {
-                // user_id: 1  
+                // user_id: 1
                 user_id: req.data.userId
             },
         });
