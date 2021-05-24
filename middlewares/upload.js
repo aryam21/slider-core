@@ -13,7 +13,7 @@ const fileFilter = (req, file, cb, res) => {
     if(mimetype && extname){
         return cb(null, true);
     } else {
-        cb("Incorrect file type, please only upload PNG,PDF,GIF formatted files.", false);
+        cb("Incorrect file type, please only upload PNG,PDF,ZIP formatted files.", false);
     }
 };
 const storage = multer.diskStorage({

@@ -90,18 +90,9 @@ const store = async (req, res) => {
 };
 
 const getPresentByOffset = async (req, res) => {
-    // console.log(req.data);
     try {
-        // const user = await User.findByPk({
-        //     where: {
-        //         google_id: '118342323602051883213'
-        //     },
-        //     attributes: ['id'],
-        // })
-        // console.log(user);
         const presentationsCount = await Presentation.count({
             where: {
-                // user_id: 1
                 user_id: req.data.userId
             },
         });
@@ -119,11 +110,11 @@ const getPresentByOffset = async (req, res) => {
                 offset: (req.params.offset-1)*10,
                 limit: 10,
                 order: [
-                    ['createdAt', 'ASC'],
+                    ['createdAt', 'DESC'],
                 ],
             });
 
-        return output(res,  { presentationsCount:presentationsCount, presentations:presentations } , false, 'Success', 200);
+        return output(res, { presentationsCount:presentationsCount, presentations:presentations } , false, 'Success', 200);
 
     }catch(error){
 
@@ -131,34 +122,34 @@ const getPresentByOffset = async (req, res) => {
     }
 };
 
-const getPresentsByUser = async (req, res) => {
-    try {
-        const presentationsCount = await Presentation.count({});
-        var presentations = await Presentation
-            .findAll({
-                where: {
-                    user_id: req.data.userId
-                },
-                attributes: ['id', 'title', 'is_private', 'secret_key', 'createdAt' ],
-                include: [{
-                    model: File,
-                    as: 'presentation_file',
-                    attributes: ['id', 'path', 'size', 'mime' ],
-                }],
-                offset: 1,
-                limit: 10,
-                order: [
-                    ['createdAt', 'ASC'],
-                ],
-            });
+// const getPresentsByUser = async (req, res) => {
+//     try {
+//         const presentationsCount = await Presentation.count({});
+//         var presentations = await Presentation
+//             .findAll({
+//                 where: {
+//                     user_id: req.data.userId
+//                 },
+//                 attributes: ['id', 'title', 'is_private', 'secret_key', 'createdAt' ],
+//                 include: [{
+//                     model: File,
+//                     as: 'presentation_file',
+//                     attributes: ['id', 'path', 'size', 'mime' ],
+//                 }],
+//                 offset: 1,
+//                 limit: 10,
+//                 order: [
+//                     ['createdAt', 'ASC'],
+//                 ],
+//             });
 
-        return output(res,  { 'presentationsCount': presentationsCount,  'presentations': presentations} , false, 'Success', 200);
+//         return output(res,  { 'presentationsCount': presentationsCount,  'presentations': presentations} , false, 'Success', 200);
 
-    }catch(error){
+//     }catch(error){
 
-        return output(res, [], true, `Error: ${error}`, 500);
-    }
-};
+//         return output(res, [], true, `Error: ${error}`, 500);
+//     }
+// };
 
 const getPresentById = async (req, res) => {
     try {
@@ -210,11 +201,9 @@ const getPresentBySlug = async (req, res) => {
 };
 
 module.exports = {
-    getPresentsByUser,
+    // getPresentsByUser,
     getPresentBySlug,
     getPresentById,
     getPresentByOffset,
     store,
 };
-
-

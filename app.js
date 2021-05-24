@@ -9,8 +9,8 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cookieSession = require("cookie-session");
 
-const passport = require('passport');
-require('./middlewares/passport');
+// const passport = require('passport');
+// require('./middlewares/passport');
 
 const cors = require('cors');
 const expressSession = require('express-session');    

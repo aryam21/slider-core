@@ -1,19 +1,14 @@
 'use strict';
-
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-let upload = multer();
+// const multer = require('multer');
+// const upload = multer();
+const PresentationController = require('../../controllers/index').presentation;
+const uploadFile = require('../../middlewares/upload');
 
-var PresentaionController = require('../../controllers/index').presentation;
-var uploadFile = require('../../middlewares/upload');
-
-// router.param('slug', /^[0-9]{6}$/);
-
-router.get("/", PresentaionController.getPresentsByUser);
-router.get("/pages/:offset", PresentaionController.getPresentByOffset);
-router.get("/slug/:slug", PresentaionController.getPresentBySlug);
-router.get("/:id", PresentaionController.getPresentById);
-router.post("/store", uploadFile.array('slider'), PresentaionController.store);
+router.get("/pages/:offset", PresentationController.getPresentByOffset);
+router.get("/slug/:slug", PresentationController.getPresentBySlug);
+router.get("/:id", PresentationController.getPresentById);
+router.post("/store", uploadFile.array('slider'), PresentationController.store);
 
 module.exports = router;

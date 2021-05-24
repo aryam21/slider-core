@@ -1,9 +1,9 @@
-const auth = require('./AuthController');
-const user = require('./UserController');
-const presentation = require('./PresentaionController');
+const auth = require('./authController');
+const presentation = require('./presentaitonController');
+const publicPresentation = require('./publicPresentationController');
 
 module.exports = {
-  auth,   
-  user,
+  auth,
   presentation,
+  publicPresentation,
 };
