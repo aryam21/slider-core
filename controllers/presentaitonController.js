@@ -35,12 +35,11 @@ const store = async (req, res) => {
 
         var presentationId = presentation.dataValues.id;
 
-        if  (req.files[0].mimetype === 'application/x-zip-compressed') {
-            return output(res, [], false, 'Unhandled zip format.', 400);
-        }
+        // if  (req.files[0].mimetype === 'application/x-zip-compressed') {
+        //     return output(res, [], false, 'Unhandled zip format.', 400);
+        // }
 
-        if (req.files[0].mimetype == 'application/zip') {
-            console.log(req.files[0]);
+        if (req.files[0].mimetype == 'application/zip' || req.files[0].mimetype === 'application/x-zip-compressed') {
             fs.createReadStream(req.files[0].path)
                 .pipe(unzipper.Parse())
                 .on('entry', async function (entry) {
@@ -62,36 +61,10 @@ const store = async (req, res) => {
                         })
                     }
                 });
-            removeFile(`public/uploads/tmp/${req.files[0].originalname}`);
             await t.commit();
+            await removeFile(`${req.files[0].path}`);
             return output(res, [], false, 'File has been uploaded from.', 200);
         }
-        // if (req.files[0].mimetype == 'application/zip') {
-        //     fs.createReadStream(req.files[0].path)
-        //             .pipe(unzipper.Parse())
-        //             .on('entry', async function (entry) {
-        //                 let fileName = new Date().getTime();
-        //                 if (entry.type == 'File') {
-        //                     await entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
-        //                     let mimeType = entry.path.split('.').pop();
-        //                     let size = entry.vars.uncompressedSize;
-        //                     let oldPath = `public/uploads/tmp/${fileName}.${mimeType}`;
-        //                     let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
-        //                     await moveFile(oldPath, newPath);
-        //                     let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
-        //                     await File.create({
-        //                         presentation_id: presentationId,
-        //                         path: newPathDb,
-        //                         name:`${fileName }.${mimeType}`,
-        //                         size: size ,
-        //                         mime: mimeType,
-        //                     })
-        //                 }
-        //             });
-        //         removeFile(req.files[0].path);
-        //         await t.commit();
-        //         return output(res, [], false, 'File has been uploaded from.', 200);
-        // }
 
 
         for (const file of req.files) {
