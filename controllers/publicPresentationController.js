@@ -20,7 +20,7 @@ const getPublicPresentationBySlug = async (req, res) => {
         });
 
         if (presentation == null) {
-            return output(res,  presentation , false, 'The resource not found', 404);
+            return output(res,  presentation , true, 'The resource not found', 404);
         }
 
         return output(res,  presentation , false, 'Success', 200);
