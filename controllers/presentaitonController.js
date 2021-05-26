@@ -170,7 +170,6 @@ const getPresentBySlug = async (req, res) => {
 
 const changePresentationStat = async (req, res) => {
     try {
-        console.log(req.params);
         var presentation = await Presentation.update(
             {
                 is_private: req.params.isPrivate
@@ -184,7 +183,8 @@ const changePresentationStat = async (req, res) => {
             return output(res,  presentation , false, 'The resource not found.', 404);
         }
 
-        return output(res,  [], false, 'The presentation has been updated.', 200);
+        return output(res,  {secret: parseInt(req.params.isPrivate) ? true : false }, false, 'The presentation has been updated.', 200);
+        // return output(res,  [], false, 'The presentation has been updated.', 200);
 
     } catch (error) {
         return output(res, [], true, `Error: ${error}`, 500);
