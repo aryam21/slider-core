@@ -10,5 +10,6 @@ router.get("/pages/:offset", PresentationController.getPresentByOffset);
 router.get("/slug/:slug", PresentationController.getPresentBySlug);
 router.get("/:id", PresentationController.getPresentById);
 router.post("/store", uploadFile.array('slider'), PresentationController.store);
+router.get("/:slug/update/:isPrivate", PresentationController.changePresentationStat);
 
 module.exports = router;

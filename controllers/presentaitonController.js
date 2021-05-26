@@ -168,9 +168,33 @@ const getPresentBySlug = async (req, res) => {
     }
 };
 
+const changePresentationStat = async (req, res) => {
+    try {
+        console.log(req.params);
+        var presentation = await Presentation.update(
+            {
+                is_private: req.params.isPrivate
+            },{
+                where: {
+                    secret_key: req.params.slug,
+                },
+            });
+
+        if (presentation == null) {
+            return output(res,  presentation , false, 'The resource not found.', 404);
+        }
+
+        return output(res,  [], false, 'The presentation has been updated.', 200);
+
+    } catch (error) {
+        return output(res, [], true, `Error: ${error}`, 500);
+    }
+};
+
 module.exports = {
     getPresentBySlug,
     getPresentById,
     getPresentByOffset,
     store,
+    changePresentationStat
 };
