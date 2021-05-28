@@ -1,5 +1,5 @@
 const User = require('../models').User;
-const authService = require('../services/authService');
+const authService = require('../services/AuthService');
 const output = require('../helpers/generateOutput');
 
 const login = async (req, res) => {

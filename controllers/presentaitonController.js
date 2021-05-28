@@ -1,4 +1,5 @@
 'use strict';
+// require('dotenv').config();
 const db = require("../models");
 const Presentation = db.Presentation;
 const File = db.File;
@@ -41,7 +42,7 @@ const store = async (req, res) => {
                         let oldPath = `${process.env.FILES_STORAGE_TMP}/${fileName}.${mimeType}`;
                         let newPath = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
                         await moveFile(oldPath, newPath);
-                        let newPathDb = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
+                        let newPathDb = `${process.env.FILES_STORAGE_ROOT}/${userId}/${presentationId}/${fileName}.${mimeType}`;
                         await File.create({
                             presentation_id: presentationId,
                             path: newPathDb,
@@ -73,7 +74,7 @@ const store = async (req, res) => {
             let oldPath = `${process.env.FILES_STORAGE_TMP}/${file.filename}`;
             let newPath = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
             moveFile(oldPath, newPath);
-            let newPathDb = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
+            let newPathDb = `${process.env.FILES_STORAGE_ROOT}/${userId}/${presentationId}/${fileName}.${mimeType}`;
             await File.create({
                 presentation_id: presentationId,
                 path: newPathDb,
