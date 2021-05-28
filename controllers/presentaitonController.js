@@ -1,5 +1,4 @@
 'use strict';
-
 const db = require("../models");
 const Presentation = db.Presentation;
 const File = db.File;
@@ -10,9 +9,7 @@ const moveFile = require('../helpers/moveFile');
 const removeFile = require('../helpers/removeFile');
 
 const store = async (req, res) => {
-
     const t = await db.sequelize.transaction();
-
     try {
 
         if (req.files.length <= 0) {
@@ -41,10 +38,10 @@ const store = async (req, res) => {
                         await entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
                         let mimeType = entry.path.split('.').pop();
                         let size = entry.vars.uncompressedSize;
-                        let oldPath = `public/uploads/tmp/${fileName}.${mimeType}`;
-                        let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
+                        let oldPath = `${process.env.FILES_STORAGE_TMP}/${fileName}.${mimeType}`;
+                        let newPath = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
                         await moveFile(oldPath, newPath);
-                        let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
+                        let newPathDb = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
                         await File.create({
                             presentation_id: presentationId,
                             path: newPathDb,
@@ -56,17 +53,27 @@ const store = async (req, res) => {
                 });
             await t.commit();
             await removeFile(`${req.files[0].path}`);
-            return output(res, [], false, 'File has been uploaded from.', 200);
+
+            var lastInsertedPresentation = await Presentation.findByPk(presentationId,
+                {
+                    attributes: ['id', 'title', 'is_private', 'secret_key', 'created_at' ],
+                    include: [{
+                        model: File,
+                        as: 'presentation_file',
+                        attributes: ['id', 'path', 'size', 'mime' ],
+                    }]
+                });
+            return output(res, lastInsertedPresentation, false, 'File has been uploaded', 200);
         }
 
 
         for (const file of req.files) {
             let mimeType = file.mimetype.split('/').pop();
             let fileName = new Date().getTime();
-            let oldPath = `public/uploads/tmp/${file.filename}`;
-            let newPath = `public/uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
+            let oldPath = `${process.env.FILES_STORAGE_TMP}/${file.filename}`;
+            let newPath = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
             moveFile(oldPath, newPath);
-            let newPathDb = `uploads/${userId}/${presentationId}/${fileName}.${mimeType}`;
+            let newPathDb = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
             await File.create({
                 presentation_id: presentationId,
                 path: newPathDb,
@@ -78,7 +85,19 @@ const store = async (req, res) => {
             });
         }
         await t.commit();
-        return output(res, [], false, 'File has been uploaded.', 200);
+        var lastInsertedPresentation = await Presentation.findByPk(presentationId,
+            {
+                attributes: ['id', 'title', 'is_private', 'secret_key', 'created_at' ],
+                include: [{
+                    model: File,
+                    as: 'presentation_file',
+                    attributes: ['id', 'path', 'size', 'mime' ],
+                    order: [
+                        ['createdAt', 'DESC'],
+                    ],
+                }]
+            });
+        return output(res, lastInsertedPresentation, false, 'File has been uploaded.', 200);
     }
     catch (error) {
         await t.rollback();
@@ -115,29 +134,6 @@ const getPresentByOffset = async (req, res) => {
 
     }catch(error){
 
-        return output(res, [], true, `Error: ${error}`, 500);
-    }
-};
-
-const getPresentById = async (req, res) => {
-    try {
-        var presentation = await Presentation.findByPk(req.params.id,
-            {
-                attributes: ['id', 'title', 'is_private', 'secret_key' ],
-                include: [{
-                    model: File,
-                    as: 'presentation_file',
-                    attributes: ['id', 'path', 'size', 'mime' ],
-                }]
-            });
-
-        if (presentation) {
-            var link = req.protocol + '://' + req.get('host') + req.originalUrl;
-            return output(res,  [{'link':link, 'secret_key':presentation.dataValues.secret_key}] , false, 'Success', 200);
-        }
-        return output(res,  [] , true, 'The resource not found', 404);
-
-    } catch (error) {
         return output(res, [], true, `Error: ${error}`, 500);
     }
 };
@@ -184,7 +180,6 @@ const changePresentationStat = async (req, res) => {
         }
 
         return output(res,  {secret: parseInt(req.params.isPrivate) ? true : false }, false, 'The presentation has been updated.', 200);
-        // return output(res,  [], false, 'The presentation has been updated.', 200);
 
     } catch (error) {
         return output(res, [], true, `Error: ${error}`, 500);
@@ -193,7 +188,6 @@ const changePresentationStat = async (req, res) => {
 
 module.exports = {
     getPresentBySlug,
-    getPresentById,
     getPresentByOffset,
     store,
     changePresentationStat

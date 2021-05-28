@@ -1,5 +1,4 @@
 'use strict';
-
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
@@ -10,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
                 as: 'presentation_user',
                 onDelete: 'CASCADE',
                 onUpdate: 'CASCADE',
-            }),
+            });
             Presentation.hasMany(models.File, {
                 foreignKey: 'presentation_id',
                 as: 'presentation_file',
@@ -18,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
                 onUpdate: 'CASCADE',
             });
         }
-    };
+    }
 
     Presentation.init(
         {
@@ -26,7 +25,6 @@ module.exports = (sequelize, DataTypes) => {
             title: DataTypes.STRING,
             is_private: DataTypes.BOOLEAN,
             secret_key: DataTypes.STRING,
-            // createdAt: DataTypes.DATE
         },
         {
             sequelize,

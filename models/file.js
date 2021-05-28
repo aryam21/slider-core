@@ -30,7 +30,5 @@ module.exports = (sequelize, DataTypes) => {
             freezeTableName: true,
         }
     );
-    // sequelize.sync()
-    // .catch(error => console.log('This error occured', error));
     return File;
 };

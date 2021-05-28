@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
                 as: 'user_presentation',
             });
         }
-    };
+    }
 
     User.init(
         {
@@ -30,7 +30,5 @@ module.exports = (sequelize, DataTypes) => {
             modelName: 'User',
             freezeTableName: true,
         });
-    // sequelize.sync()
-    // .catch(error => console.log('This error occured', error));
     return User;
 };
