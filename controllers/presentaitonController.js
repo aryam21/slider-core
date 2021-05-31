@@ -1,5 +1,5 @@
 'use strict';
-// require('dotenv').config();
+require('dotenv').config();
 const db = require("../models");
 const Presentation = db.Presentation;
 const File = db.File;
@@ -8,6 +8,7 @@ const fs = require('fs');
 const output = require('../helpers/generateOutput');
 const moveFile = require('../helpers/moveFile');
 const removeFile = require('../helpers/removeFile');
+// const fsExtra = require('fs-extra');
 
 const store = async (req, res) => {
     const t = await db.sequelize.transaction();
@@ -31,40 +32,48 @@ const store = async (req, res) => {
         var presentationId = presentation.dataValues.id;
 
         if (req.files[0].mimetype == 'application/zip' || req.files[0].mimetype === 'application/x-zip-compressed') {
-            fs.createReadStream(req.files[0].path)
+            let lastInsert =  fs.createReadStream(req.files[0].path)
                 .pipe(unzipper.Parse())
                 .on('entry', async function (entry) {
                     let fileName = new Date().getTime();
                     if (entry.type == 'File' && entry.path.split('/').shift() != '__MACOSX') {
-                        await entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
+                        await entry.pipe(await fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
                         let mimeType = entry.path.split('.').pop();
                         let size = entry.vars.uncompressedSize;
                         let oldPath = `${process.env.FILES_STORAGE_TMP}/${fileName}.${mimeType}`;
                         let newPath = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
                         await moveFile(oldPath, newPath);
                         let newPathDb = `${process.env.FILES_STORAGE_ROOT}/${userId}/${presentationId}/${fileName}.${mimeType}`;
-                        await File.create({
-                            presentation_id: presentationId,
-                            path: newPathDb,
-                            name:`${fileName }.${mimeType}`,
-                            size: size ,
-                            mime: mimeType,
-                        })
+
+                           let files = await File.create({
+                               presentation_id: presentationId,
+                               path: newPathDb,
+                               name:`${fileName }.${mimeType}`,
+                               size: size ,
+                               mime: mimeType,
+                           })
+
                     }
+                }).promise()
+                .then(  async () => {
+
+                        return await Presentation.findByPk(presentationId,
+                        {
+                            attributes: ['id', 'title', 'is_private', 'secret_key', 'created_at' ],
+                            include: [{
+                                model: File,
+                                as: 'presentation_file',
+                                attributes: ['id', 'path', 'size', 'mime' ],
+                            }]
+                        })
+
+                }  , e => console.log('error',e.message)).then( async resp =>{
+                        lastSlide = await  resp;
+
+                        return output(res, lastSlide, false, 'File has been uploaded', 200);
                 });
             await t.commit();
             await removeFile(`${req.files[0].path}`);
-
-            var lastInsertedPresentation = await Presentation.findByPk(presentationId,
-                {
-                    attributes: ['id', 'title', 'is_private', 'secret_key', 'created_at' ],
-                    include: [{
-                        model: File,
-                        as: 'presentation_file',
-                        attributes: ['id', 'path', 'size', 'mime' ],
-                    }]
-                });
-            return output(res, lastInsertedPresentation, false, 'File has been uploaded', 200);
         }
 
 
@@ -101,7 +110,9 @@ const store = async (req, res) => {
         return output(res, lastInsertedPresentation, false, 'File has been uploaded.', 200);
     }
     catch (error) {
+        // console.log(error.message,212121212) ;
         await t.rollback();
+
         return output(res, [], true, `Error when trying upload files: ${error}`, 500);
     }
 };
