@@ -32,87 +32,83 @@ const store = async (req, res) => {
         var presentationId = presentation.dataValues.id;
 
         if (req.files[0].mimetype == 'application/zip' || req.files[0].mimetype === 'application/x-zip-compressed') {
-            let lastInsert =  fs.createReadStream(req.files[0].path)
+           await fs.createReadStream(req.files[0].path)
                 .pipe(unzipper.Parse())
                 .on('entry', async function (entry) {
                     let fileName = new Date().getTime();
                     if (entry.type == 'File' && entry.path.split('/').shift() != '__MACOSX') {
-                        await entry.pipe(await fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
+                        await entry.pipe(fs.createWriteStream(`${req.files[0].destination}/${fileName}.png`));
                         let mimeType = entry.path.split('.').pop();
                         let size = entry.vars.uncompressedSize;
                         let oldPath = `${process.env.FILES_STORAGE_TMP}/${fileName}.${mimeType}`;
                         let newPath = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
                         await moveFile(oldPath, newPath);
                         let newPathDb = `${process.env.FILES_STORAGE_ROOT}/${userId}/${presentationId}/${fileName}.${mimeType}`;
-
-                           let files = await File.create({
-                               presentation_id: presentationId,
-                               path: newPathDb,
-                               name:`${fileName }.${mimeType}`,
-                               size: size ,
-                               mime: mimeType,
-                           })
-
-                    }
-                }).promise()
-                .then(  async () => {
-
-                        return await Presentation.findByPk(presentationId,
-                        {
-                            attributes: ['id', 'title', 'is_private', 'secret_key', 'created_at' ],
-                            include: [{
-                                model: File,
-                                as: 'presentation_file',
-                                attributes: ['id', 'path', 'size', 'mime' ],
-                            }]
+                        await File.create({
+                            presentation_id: presentationId,
+                            path: newPathDb,
+                            name:`${fileName }.${mimeType}`,
+                            size: size ,
+                            mime: mimeType,
+                        }, {
+                            transaction: t
                         })
+                    }
+                }).promise().then(async  ()=>{
 
-                }  , e => console.log('error',e.message)).then( async resp =>{
-                        lastSlide = await  resp;
+                await removeFile(`${req.files[0].path}`);
+                await t.commit();
+                var lastInsertedPresentation = await Presentation.findByPk(presentationId,
+                    {
+                        attributes: ['id', 'title', 'is_private', 'secret_key', 'created_at' ],
+                        include: [{
+                            model: File,
+                            as: 'presentation_file',
+                            attributes: ['id', 'path', 'size', 'mime' ],
+                        }]
+                    });
 
-                        return output(res, lastSlide, false, 'File has been uploaded', 200);
+                return output(res, lastInsertedPresentation, false, 'File has been uploaded', 200);
+            });
+        }else{
+            for (const file of req.files) {
+                let mimeType = file.mimetype.split('/').pop();
+                let fileName = new Date().getTime();
+                let oldPath = `${process.env.FILES_STORAGE_TMP}/${file.filename}`;
+                let newPath = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
+                moveFile(oldPath, newPath);
+                let newPathDb = `${process.env.FILES_STORAGE_ROOT}/${userId}/${presentationId}/${fileName}.${mimeType}`;
+                await File.create({
+                    presentation_id: presentationId,
+                    path: newPathDb,
+                    name: `${fileName}.${mimeType}`,
+                    size: file.size,
+                    mime: mimeType,
+                },{
+                    transaction: t
                 });
+            }
             await t.commit();
-            await removeFile(`${req.files[0].path}`);
+            var lastInsertedPresentation = await Presentation.findByPk(presentationId,
+                {
+                    attributes: ['id', 'title', 'is_private', 'secret_key', 'created_at' ],
+                    include: [{
+                        model: File,
+                        as: 'presentation_file',
+                        attributes: ['id', 'path', 'size', 'mime' ],
+                        order: [
+                            ['createdAt', 'DESC'],
+                        ],
+                    }]
+                });
+            return output(res, lastInsertedPresentation, false, 'File has been uploaded.', 200);
         }
 
 
-        for (const file of req.files) {
-            let mimeType = file.mimetype.split('/').pop();
-            let fileName = new Date().getTime();
-            let oldPath = `${process.env.FILES_STORAGE_TMP}/${file.filename}`;
-            let newPath = `${process.env.FILES_STORAGE}/${userId}/${presentationId}/${fileName}.${mimeType}`;
-            moveFile(oldPath, newPath);
-            let newPathDb = `${process.env.FILES_STORAGE_ROOT}/${userId}/${presentationId}/${fileName}.${mimeType}`;
-            await File.create({
-                presentation_id: presentationId,
-                path: newPathDb,
-                name: `${fileName}.${mimeType}`,
-                size: file.size,
-                mime: mimeType,
-            },{
-                transaction: t
-            });
-        }
-        await t.commit();
-        var lastInsertedPresentation = await Presentation.findByPk(presentationId,
-            {
-                attributes: ['id', 'title', 'is_private', 'secret_key', 'created_at' ],
-                include: [{
-                    model: File,
-                    as: 'presentation_file',
-                    attributes: ['id', 'path', 'size', 'mime' ],
-                    order: [
-                        ['createdAt', 'DESC'],
-                    ],
-                }]
-            });
-        return output(res, lastInsertedPresentation, false, 'File has been uploaded.', 200);
     }
     catch (error) {
-        // console.log(error.message,212121212) ;
+        console.log(error.message) ;
         await t.rollback();
-
         return output(res, [], true, `Error when trying upload files: ${error}`, 500);
     }
 };
