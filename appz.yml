@@ -1,0 +1,27 @@
+app:
+    name: slider-core
+    code: slider-core
+    notify: aramanan@ecloudcontrol.com
+
+build:
+    version: 0.1
+    env: DEV
+    build_file: none
+    output_files: output/*.zip
+    image_template: node-14.21
+
+
+deploy:
+    context: aryam21/DEV
+    replicas: 1
+    port:
+    - 8080
+    - 80
+
+
+properties:
+    page_title: "React-bootstrap + nodejs-express App"
+    ##site_url: "https://hellonodejs.appzclient.com/"
+    BUILD_ON_STARTUP: 0
+    revision: 0
+    page_color: Blue
