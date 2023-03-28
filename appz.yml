@@ -15,8 +15,6 @@ deploy:
     context: aryam21/DEV
     replicas: 1
     port:
-    - 8080
-    - 80
     - 4000
 
 
