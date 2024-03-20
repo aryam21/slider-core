@@ -28,10 +28,10 @@ properties:
     FILES_STORAGE: public/uploads
     FILES_STORAGE_TMP: public/uploads/tmp
     FILES_STORAGE_ROOT: uploads
-    DB_USERNAME: slider
+    DB_USERNAME: postgres
     DB_PASSWORD:
       vault: POSTGRESQL_SLIDER_PASSWORD
-    DB_DATABASE: slider
+    DB_DATABASE: postgres
     DB_HOST: postgres-slider-13-x
     DB_DIALECT: postgres
     revision: 2
